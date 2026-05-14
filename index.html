@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Лизинговый калькулятор</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0B1D3A;
+  --blue: #185FA5;
+  --blue-light: #2A7FD4;
+  --accent: #00C9A7;
+  --accent2: #FFB547;
+  --bg: #F0F4FA;
+  --card: #FFFFFF;
+  --text: #0B1D3A;
+  --muted: #6B7FA3;
+  --border: #D6E0F0;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --display: 'Unbounded', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;padding:24px 16px 40px}
+
+.wrap{max-width:720px;margin:0 auto}
+
+/* Header */
+.header{text-align:center;margin-bottom:32px;padding:40px 24px 32px;background:var(--navy);border-radius:20px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(0,201,167,0.12);pointer-events:none}
+.header::after{content:'';position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;border-radius:50%;background:rgba(42,127,212,0.15);pointer-events:none}
+.header-tag{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:12px}
+.header h1{font-family:var(--display);font-size:clamp(20px,4vw,28px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:8px}
+.header p{font-size:13px;color:rgba(255,255,255,0.55);font-weight:300}
+
+/* Cards */
+.card{background:var(--card);border-radius:16px;padding:24px;margin-bottom:16px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(11,29,58,0.06)}
+.card-title{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.card-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+/* Form fields */
+.field{margin-bottom:18px}
+.field-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.field-label span{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--blue)}
+
+input[type=date]{width:100%;padding:10px 14px;font-size:14px;font-family:var(--sans);border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border-color .2s}
+input[type=date]:focus{border-color:var(--blue)}
+
+.price-wrap{display:flex;gap:8px}
+.price-input{flex:1;padding:10px 14px;font-size:14px;font-family:var(--mono);border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border-color .2s}
+.price-input:focus{border-color:var(--blue)}
+.price-btn{padding:10px 16px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:13px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:background .2s;white-space:nowrap}
+.price-btn:hover{background:var(--blue-light)}
+
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;margin:6px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);cursor:pointer;box-shadow:0 0 0 3px rgba(24,95,165,0.15);transition:box-shadow .2s}
+input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 5px rgba(24,95,165,0.2)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Result block */
+.result-block{background:linear-gradient(135deg,var(--navy) 0%,#1a3a6e 100%);border-radius:16px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+.result-block::after{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(0,201,167,0.1)}
+.result-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.45);text-transform:uppercase;margin-bottom:6px}
+.result-value{font-family:var(--display);font-size:clamp(22px,4vw,30px);font-weight:700;color:#fff;margin-bottom:4px;line-height:1.1}
+.result-sub{font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:20px;font-family:var(--mono)}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.result-mini{background:rgba(255,255,255,0.07);border-radius:10px;padding:12px 14px;border:1px solid rgba(255,255,255,0.08)}
+.result-mini .r-label{font-size:10px;color:rgba(255,255,255,0.4);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.result-mini .r-val{font-size:14px;font-weight:500;color:#fff;font-family:var(--mono)}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:520px}
+thead tr{background:var(--navy)}
+thead th{padding:10px 12px;text-align:right;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:500;white-space:nowrap}
+thead th:first-child{text-align:center;width:32px}
+thead th:nth-child(2){text-align:left}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:hover{background:#f5f8ff}
+tbody tr:last-child{border-bottom:none;background:#f0f7ff;font-weight:600}
+tbody td{padding:9px 12px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--text)}
+tbody td:first-child{text-align:center;color:var(--muted);font-size:11px}
+tbody td:nth-child(2){text-align:left;font-family:var(--sans);font-weight:500}
+tbody td.days-col{color:var(--blue);font-weight:500}
+tbody td.payment-col{color:var(--navy);font-weight:600}
+tbody tr:last-child td{color:var(--navy)}
+
+/* Buttons */
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.btn{padding:13px;border:none;border-radius:12px;font-size:13px;font-family:var(--sans);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.3px;transition:all .2s}
+.btn-excel{background:var(--accent);color:var(--navy)}
+.btn-excel:hover{background:#00b89a;transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,201,167,0.35)}
+.btn-csv{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}
+.btn-csv:hover{background:var(--blue);color:#fff;transform:translateY(-1px)}
+
+/* Icons */
+.ico{font-size:16px;line-height:1}
+
+@media(max-width:480px){
+  .grid2{grid-template-columns:1fr}
+  .result-grid{grid-template-columns:1fr 1fr}
+  .btn-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="header-tag">Лизинговый калькулятор</div>
+    <h1>График платежей</h1>
+    <p>Квартальные платежи · фактические дни · основной долг пропорционален дням</p>
+  </div>
+
+  <!-- Параметры -->
+  <div class="card">
+    <div class="card-title">Параметры договора</div>
+
+    <div class="field">
+      <div class="field-label">Дата начала графика</div>
+      <input type="date" id="sDate" oninput="calc()">
+    </div>
+
+    <div class="field">
+      <div class="field-label">Стоимость техники <span id="vPrice">2 300 000 000 сум</span></div>
+      <div class="price-wrap">
+        <input class="price-input" type="number" id="nPrice" min="1000000" max="8000000000" step="1000000" value="2300000000" oninput="syncSlider()" placeholder="Введите сумму вручную">
+        <button class="price-btn" onclick="calc()">Применить</button>
+      </div>
+      <input type="range" min="1000000" max="8000000000" step="1000000" value="2300000000" id="sPrice" oninput="syncInput()" style="margin-top:8px">
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <div class="field-label">Аванс <span id="vDown">15%</span></div>
+        <input type="range" min="10" max="40" step="1" value="15" id="sDown" oninput="calc()">
+      </div>
+      <div class="field">
+        <div class="field-label">Ставка <span id="vRate">14% год.</span></div>
+        <input type="range" min="8" max="30" step="1" value="14" id="sRate" oninput="calc()">
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:0">
+      <div class="field-label">Срок лизинга <span id="vTerm">120 мес (10 лет)</span></div>
+      <input type="range" min="12" max="120" step="12" value="120" id="sTerm" oninput="calc()">
+    </div>
+  </div>
+
+  <!-- Итого -->
+  <div class="result-block">
+    <div class="result-label">1-й квартальный платёж</div>
+    <div class="result-value" id="rFirst">—</div>
+    <div class="result-sub" id="rSub">—</div>
+    <div class="result-grid">
+      <div class="result-mini"><div class="r-label">Аванс</div><div class="r-val" id="rAdv">—</div></div>
+      <div class="result-mini"><div class="r-label">Итого по договору</div><div class="r-val" id="rTotal">—</div></div>
+      <div class="result-mini"><div class="r-label">Сумма процентов</div><div class="r-val" id="rInt">—</div></div>
+      <div class="result-mini"><div class="r-label">Кол-во платежей</div><div class="r-val" id="rQty">—</div></div>
+    </div>
+  </div>
+
+  <!-- Таблица -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Дата платежа</th>
+            <th>Дней</th>
+            <th>Осн. долг</th>
+            <th>Проценты</th>
+            <th>Платёж</th>
+          </tr>
+        </thead>
+        <tbody id="tBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Кнопки -->
+  <div class="btn-row">
+    <button class="btn btn-excel" onclick="exportExcel()">
+      <span class="ico">📊</span> Скачать Excel
+    </button>
+    <button class="btn btn-csv" onclick="exportCSV()">
+      <span class="ico">📥</span> Скачать CSV
+    </button>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+var gRows=[], gParams={};
+function pad(n){return String(n).padStart(2,'0')}
+function formatDate(d){return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()}
+function fmt(n){return Math.round(n).toLocaleString('ru-RU')}
+function fmtK(n){return Math.round(n/1000).toLocaleString('ru-RU')}
+
+function syncSlider(){
+  var v=+document.getElementById('nPrice').value;
+  if(v>=1000000&&v<=8000000000){document.getElementById('sPrice').value=v;calc();}
+}
+function syncInput(){
+  var v=+document.getElementById('sPrice').value;
+  document.getElementById('nPrice').value=v;calc();
+}
+
+function lastDayOfMonth(y,m){return new Date(y,m+1,0)}
+function daysInYear(y){return((y%4===0&&y%100!==0)||(y%400===0))?366:365}
+
+function nextQuarterEnd(d){
+  var m=d.getMonth(),y=d.getFullYear(),em;
+  if(m<2)em=2;else if(m<5)em=5;else if(m<8)em=8;else em=11;
+  if(em<=m){em+=3;if(em>11){em-=12;y++;}}
+  return lastDayOfMonth(y,em);
+}
+
+function buildPeriods(start,termMonths){
+  var periods=[],from=new Date(start);
+  var end=new Date(start);end.setMonth(end.getMonth()+termMonths);
+  while(from<end){
+    var to=nextQuarterEnd(from);
+    if(to>=end){var last=new Date(end);last.setDate(last.getDate()-1);periods.push({from:new Date(from),to:last});break;}
+    periods.push({from:new Date(from),to:new Date(to)});
+    from=new Date(to.getFullYear(),to.getMonth()+1,1);
+  }
+  return periods;
+}
+
+function calcInterest(rem,rate,fromDate,toDate){
+  var interest=0,cur=new Date(fromDate);
+  var end=new Date(toDate);end.setDate(end.getDate()+1);
+  while(cur<end){
+    var nm=new Date(cur.getFullYear(),cur.getMonth()+1,1);
+    if(nm>end)nm=new Date(end);
+    var days=(nm-cur)/86400000;
+    interest+=rem*rate*days/daysInYear(cur.getFullYear());
+    cur=new Date(nm);
+  }
+  return interest;
+}
+
+function calc(){
+  var dv=document.getElementById('sDate').value;
+  var start=dv?new Date(dv):new Date();start.setHours(0,0,0,0);
+  var price=+document.getElementById('nPrice').value||+document.getElementById('sPrice').value;
+  price=Math.min(Math.max(price,1000000),8000000000);
+  var downPct=+document.getElementById('sDown').value;
+  var rate=+document.getElementById('sRate').value/100;
+  var termMonths=+document.getElementById('sTerm').value;
+
+  document.getElementById('vPrice').textContent=fmt(price)+' сум';
+  document.getElementById('vDown').textContent=downPct+'%';
+  document.getElementById('vRate').textContent=+document.getElementById('sRate').value+'% год.';
+  var yrs=termMonths/12;
+  document.getElementById('vTerm').textContent=termMonths+' мес ('+(yrs%1===0?yrs:yrs.toFixed(1))+' лет)';
+
+  var advance=price*downPct/100;
+  var body=price-advance;
+  var periods=buildPeriods(start,termMonths);
+  var n=periods.length;
+  var daysList=periods.map(function(p){return Math.round((p.to-p.from)/86400000)+1;});
+  var totalDaysAll=daysList.reduce(function(a,b){return a+b;},0);
+
+  gRows=[];
+  var rem=body,totalInt=0,totalDays=0;
+  for(var i=0;i<n;i++){
+    var principal=i<n-1?body*(daysList[i]/totalDaysAll):rem;
+    var interest=calcInterest(rem,rate,periods[i].from,periods[i].to);
+    var payment=principal+interest;
+    totalInt+=interest;totalDays+=daysList[i];
+    gRows.push({num:i+1,from:periods[i].from,to:periods[i].to,days:daysList[i],principal:principal,interest:interest,payment:payment,rem:rem});
+    rem-=principal;
+  }
+  gParams={price,advance,body,rate:+document.getElementById('sRate').value,termMonths,totalInt,totalDays,start,downPct};
+
+  document.getElementById('rFirst').textContent=fmtK(gRows[0].payment)+' тыс. сум';
+  document.getElementById('rSub').textContent=n+' платежей · ставка '+document.getElementById('sRate').value+'% · срок '+termMonths+' мес';
+  document.getElementById('rAdv').textContent=fmtK(advance)+' тыс.';
+  document.getElementById('rTotal').textContent=fmtK(body+totalInt+advance)+' тыс.';
+  document.getElementById('rInt').textContent=fmtK(totalInt)+' тыс.';
+  document.getElementById('rQty').textContent=n+' квартальных';
+
+  var tb=document.getElementById('tBody');tb.innerHTML='';
+  gRows.forEach(function(r){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+r.num+'</td>'
+      +'<td>'+formatDate(r.to)+'</td>'
+      +'<td class="days-col">'+r.days+'</td>'
+      +'<td>'+fmtK(r.principal)+'</td>'
+      +'<td>'+fmtK(r.interest)+'</td>'
+      +'<td class="payment-col">'+fmtK(r.payment)+'</td>';
+    tb.appendChild(tr);
+  });
+  var tot=document.createElement('tr');
+  tot.innerHTML='<td>—</td><td>Итого</td><td class="days-col">'+totalDays+'</td>'
+    +'<td>'+fmtK(body)+'</td><td>'+fmtK(totalInt)+'</td>'
+    +'<td class="payment-col">'+fmtK(body+totalInt)+'</td>';
+  tb.appendChild(tot);
+}
+
+function exportExcel(){
+  if(!window.XLSX){alert('Загрузка...');return;}
+  var wb=XLSX.utils.book_new();
+  var data=[
+    ['ЛИЗИНГОВЫЙ КАЛЬКУЛЯТОР — ГРАФИК ПЛАТЕЖЕЙ'],[''],
+    ['Дата начала графика',formatDate(gParams.start)],
+    ['Стоимость техники (сум)',gParams.price],
+    ['Аванс',gParams.downPct+'% ('+fmt(gParams.advance)+' сум)'],
+    ['Сумма финансирования (сум)',Math.round(gParams.body)],
+    ['Лизинговая ставка',gParams.rate+'% годовых'],
+    ['Срок лизинга',gParams.termMonths+' месяцев'],
+    ['Итого процентов (сум)',Math.round(gParams.totalInt)],
+    ['Итого по договору (сум)',Math.round(gParams.body+gParams.totalInt+gParams.advance)],
+    [''],
+    ['№','Дата платежа','Кол-во дней','Остаток долга (сум)','Основной долг (сум)','Проценты (сум)','Платёж (сум)']
+  ];
+  var rem=gParams.body;
+  gRows.forEach(function(r){
+    data.push([r.num,formatDate(r.to),r.days,Math.round(rem),Math.round(r.principal),Math.round(r.interest),Math.round(r.payment)]);
+    rem-=r.principal;
+  });
+  data.push(['','Итого',gParams.totalDays,'',Math.round(gParams.body),Math.round(gParams.totalInt),Math.round(gParams.body+gParams.totalInt)]);
+  var ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:5},{wch:14},{wch:12},{wch:22},{wch:22},{wch:18},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws,'График платежей');
+  XLSX.writeFile(wb,'Лизинг_график_платежей.xlsx');
+}
+
+function exportCSV(){
+  var lines=['№;Дата платежа;Кол-во дней;Осн. долг (сум);Проценты (сум);Платёж (сум)'];
+  gRows.forEach(function(r){
+    lines.push(r.num+';'+formatDate(r.to)+';'+r.days+';'+Math.round(r.principal)+';'+Math.round(r.interest)+';'+Math.round(r.payment));
+  });
+  lines.push('Итого;;'+gParams.totalDays+';'+Math.round(gParams.body)+';'+Math.round(gParams.totalInt)+';'+Math.round(gParams.body+gParams.totalInt));
+  var blob=new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='Лизинг_график_платежей.csv';a.click();
+  URL.revokeObjectURL(url);
+}
+
+var t=new Date();
+document.getElementById('sDate').value=t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());
+calc();
+</script>
+</body>
+</html>
