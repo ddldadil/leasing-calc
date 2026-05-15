@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Лизинговый калькулятор</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B1D3A;
+  --blue:#185FA5;
+  --blue-h:#1470BF;
+  --accent:#00C9A7;
+  --gold:#FFB547;
+  --gold-bg:rgba(255,181,71,0.10);
+  --gold-border:rgba(255,181,71,0.35);
+  --bg:#EEF2F9;
+  --card:#FFFFFF;
+  --text:#0B1D3A;
+  --muted:#6B7FA3;
+  --border:#D6E0F0;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+  --radius:14px;
+  --shadow:0 2px 16px rgba(11,29,58,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── LAYOUT ── */
+.page{max-width:1100px;margin:0 auto;padding:32px 20px 60px}
+.top-bar{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.logo-box{width:48px;height:48px;border-radius:12px;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-box svg{width:26px;height:26px}
+.top-bar h1{font-size:22px;font-weight:700;color:var(--navy);line-height:1.2}
+.top-bar p{font-size:13px;color:var(--muted);margin-top:2px}
+
+.layout{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+@media(max-width:820px){.layout{grid-template-columns:1fr}}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:24px}
+.card+.card{margin-top:16px}
+.section-title{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';display:block;width:3px;height:13px;background:var(--accent);border-radius:2px;flex-shrink:0}
+
+/* ── FIELDS ── */
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.field-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.field-label{font-size:12px;font-weight:500;color:var(--muted)}
+.field-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--blue)}
+
+input[type=date]{width:100%;padding:9px 12px;font-size:13px;font-family:var(--sans);border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border-color .2s}
+input[type=date]:focus{border-color:var(--blue)}
+
+.price-row{display:flex;gap:8px}
+.price-inp{flex:1;padding:9px 12px;font-size:13px;font-family:var(--mono);border:1.5px solid var(--border);border-radius:10px;background:#fff;color:var(--text);outline:none;transition:border-color .2s}
+.price-inp:focus{border-color:var(--blue)}
+.apply-btn{padding:9px 14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s;white-space:nowrap}
+.apply-btn:hover{background:var(--blue-h)}
+
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border);border-radius:2px;outline:none;margin-top:8px;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,0.15);transition:box-shadow .2s}
+input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 5px rgba(24,95,165,0.22)}
+
+.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+
+/* ── GRACE BADGE ── */
+.grace-info-box{background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:10px;padding:10px 14px;margin-top:10px;font-size:12px;color:#7a5500;line-height:1.6;display:none}
+.grace-info-box.show{display:block}
+
+/* ── RESULT HERO ── */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,#163660 100%);border-radius:var(--radius);padding:28px;margin-bottom:16px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;border-radius:50%;background:rgba(0,201,167,0.09);pointer-events:none}
+.hero::before{content:'';position:absolute;bottom:-40px;left:-30px;width:130px;height:130px;border-radius:50%;background:rgba(24,95,165,0.15);pointer-events:none}
+.hero-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);font-family:var(--mono);margin-bottom:6px}
+.hero-value{font-size:clamp(24px,3vw,34px);font-weight:700;color:#fff;font-family:var(--mono);margin-bottom:4px;line-height:1.1}
+.hero-sub{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:22px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hero-mini{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 14px}
+.hero-mini-label{font-size:10px;color:rgba(255,255,255,0.38);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.hero-mini-val{font-size:14px;font-weight:500;color:#fff;font-family:var(--mono)}
+
+/* ── TABLE ── */
+.tbl-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.tbl-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.tbl-header .section-title{margin-bottom:0}
+.tbl-count{font-size:12px;font-family:var(--mono);color:var(--muted)}
+.tbl-scroll{overflow-x:auto;max-height:480px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:600px}
+thead{position:sticky;top:0;z-index:2}
+thead th{background:var(--navy);color:rgba(255,255,255,0.5);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 14px;text-align:right;font-weight:500;white-space:nowrap}
+thead th:first-child{text-align:center;width:40px}
+thead th:nth-child(2){text-align:left;min-width:130px}
+thead th:nth-child(3){text-align:center;min-width:70px}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+tbody tr:hover{background:#f4f7fd}
+tbody tr.grace{background:var(--gold-bg)}
+tbody tr.grace:hover{background:rgba(255,181,71,0.15)}
+tbody tr.total{background:#f0f5ff;font-weight:600;border-top:2px solid var(--border)}
+tbody td{padding:9px 14px;text-align:right;font-family:var(--mono);color:var(--text)}
+tbody td:first-child{text-align:center;color:var(--muted);font-size:11px}
+tbody td:nth-child(2){text-align:left;font-family:var(--sans);font-weight:500;font-size:12.5px}
+tbody td:nth-child(3){text-align:center}
+tbody td.days-val{color:var(--blue);font-weight:500}
+tbody td.pay-val{color:var(--navy);font-weight:600}
+tbody tr.grace td{color:#7a5500}
+tbody tr.grace td.days-val{color:#a06800}
+tbody tr.grace td.pay-val{color:#7a5500}
+.badge{display:inline-block;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600;vertical-align:middle;margin-left:6px;font-family:var(--sans)}
+.badge-grace{background:var(--gold);color:#5a3e00}
+.badge-total{background:#E6F1FB;color:var(--blue)}
+
+/* ── BUTTONS ── */
+.btn-row{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--border);background:var(--bg);border-radius:0 0 var(--radius) var(--radius)}
+.btn{padding:11px 20px;border:none;border-radius:10px;font-size:13px;font-family:var(--sans);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s}
+.btn-xl{background:var(--accent);color:var(--navy)}
+.btn-xl:hover{background:#00b89a;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,201,167,0.3)}
+.btn-outline{background:transparent;color:var(--blue);border:1.5px solid var(--blue)}
+.btn-outline:hover{background:var(--blue);color:#fff;transform:translateY(-1px)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="logo-box">
+      <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="14" width="5" height="10" rx="1.5" fill="#00C9A7"/>
+        <rect x="10" y="8" width="5" height="16" rx="1.5" fill="#2A7FD4"/>
+        <rect x="18" y="2" width="5" height="22" rx="1.5" fill="white" opacity=".9"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Лизинговый калькулятор</h1>
+      <p>Квартальные платежи · фактические дни · льготный период</p>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- LEFT: Params -->
+    <div>
+      <div class="card">
+        <div class="section-title">Параметры договора</div>
+
+        <div class="field">
+          <div class="field-top"><span class="field-label">Дата начала графика</span></div>
+          <input type="date" id="sDate" oninput="calc()">
+        </div>
+
+        <div class="field">
+          <div class="field-top">
+            <span class="field-label">Стоимость техники</span>
+            <span class="field-val" id="vPrice">2 300 000 000 сум</span>
+          </div>
+          <div class="price-row">
+            <input class="price-inp" type="number" id="nPrice" min="1000000" max="8000000000" step="1000000" value="2300000000" oninput="syncSlider()" placeholder="Сумма вручную">
+            <button class="apply-btn" onclick="calc()">Применить</button>
+          </div>
+          <input type="range" min="1000000" max="8000000000" step="1000000" value="2300000000" id="sPrice" oninput="syncInput()">
+        </div>
+
+        <div class="field">
+          <div class="field-top">
+            <span class="field-label">Аванс</span>
+            <span class="field-val" id="vDown">15%</span>
+          </div>
+          <input type="range" min="10" max="40" step="1" value="15" id="sDown" oninput="calc()">
+        </div>
+
+        <div class="field">
+          <div class="field-top">
+            <span class="field-label">Лизинговая ставка</span>
+            <span class="field-val" id="vRate">14% год.</span>
+          </div>
+          <input type="range" min="8" max="30" step="1" value="14" id="sRate" oninput="calc()">
+        </div>
+
+        <div class="field">
+          <div class="field-top">
+            <span class="field-label">Срок лизинга</span>
+            <span class="field-val" id="vTerm">120 мес (10 лет)</span>
+          </div>
+          <input type="range" min="12" max="120" step="12" value="120" id="sTerm" oninput="calc()">
+        </div>
+
+        <hr class="divider">
+
+        <div class="section-title">Льготный период</div>
+
+        <div class="field">
+          <div class="field-top">
+            <span class="field-label">Продолжительность</span>
+            <span class="field-val" id="vGrace">Нет</span>
+          </div>
+          <input type="range" min="0" max="24" step="6" value="0" id="sGrace" oninput="calc()">
+          <div style="display:flex;justify-content:space-between;margin-top:4px">
+            <span style="font-size:10px;color:var(--muted)">Нет</span>
+            <span style="font-size:10px;color:var(--muted)">6 мес</span>
+            <span style="font-size:10px;color:var(--muted)">12 мес</span>
+            <span style="font-size:10px;color:var(--muted)">18 мес</span>
+            <span style="font-size:10px;color:var(--muted)">2 года</span>
+          </div>
+        </div>
+
+        <div class="grace-info-box" id="graceBox"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div>
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-label" id="heroLabel">1-й квартальный платёж</div>
+        <div class="hero-value" id="rFirst">—</div>
+        <div class="hero-sub" id="rSub">—</div>
+        <div class="hero-grid">
+          <div class="hero-mini"><div class="hero-mini-label">Аванс</div><div class="hero-mini-val" id="rAdv">—</div></div>
+          <div class="hero-mini"><div class="hero-mini-label">Итого по договору</div><div class="hero-mini-val" id="rTotal">—</div></div>
+          <div class="hero-mini"><div class="hero-mini-label">Сумма процентов</div><div class="hero-mini-val" id="rInt">—</div></div>
+          <div class="hero-mini"><div class="hero-mini-label">Кол-во платежей</div><div class="hero-mini-val" id="rQty">—</div></div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="tbl-card">
+        <div class="tbl-header">
+          <div class="section-title">График платежей</div>
+          <span class="tbl-count" id="tblCount"></span>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>№</th>
+                <th>Дата платежа</th>
+                <th>Дней</th>
+                <th>Остаток долга</th>
+                <th>Осн. долг</th>
+                <th>Проценты</th>
+                <th>Платёж</th>
+              </tr>
+            </thead>
+            <tbody id="tBody"></tbody>
+          </table>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-xl" onclick="exportExcel()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Скачать Excel
+          </button>
+          <button class="btn btn-outline" onclick="exportCSV()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+            Скачать CSV
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+var gRows=[], gParams={};
+
+function pad(n){return String(n).padStart(2,'0')}
+function formatDate(d){return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear()}
+function fmt(n){return Math.round(n).toLocaleString('ru-RU')}
+function fmtK(n){return Math.round(n/1000).toLocaleString('ru-RU')}
+
+function syncSlider(){
+  var v=+document.getElementById('nPrice').value;
+  if(v>=1000000&&v<=8000000000){document.getElementById('sPrice').value=v;calc();}
+}
+function syncInput(){
+  document.getElementById('nPrice').value=+document.getElementById('sPrice').value;
+  calc();
+}
+
+function lastDayOfMonth(y,m){return new Date(y,m+1,0)}
+function daysInYear(y){return((y%4===0&&y%100!==0)||(y%400===0))?366:365}
+
+function nextQuarterEnd(d){
+  var m=d.getMonth(),y=d.getFullYear(),em;
+  if(m<2)em=2;else if(m<5)em=5;else if(m<8)em=8;else em=11;
+  if(em<=m){em+=3;if(em>11){em-=12;y++;}}
+  return lastDayOfMonth(y,em);
+}
+
+function buildPeriods(start,termMonths){
+  var periods=[],from=new Date(start);
+  var end=new Date(start);end.setMonth(end.getMonth()+termMonths);
+  while(from<end){
+    var to=nextQuarterEnd(from);
+    if(to>=end){
+      var last=new Date(end);last.setDate(last.getDate()-1);
+      periods.push({from:new Date(from),to:last});break;
+    }
+    periods.push({from:new Date(from),to:new Date(to)});
+    from=new Date(to.getFullYear(),to.getMonth()+1,1);
+  }
+  return periods;
+}
+
+function calcInterest(rem,rate,fromDate,toDate){
+  var interest=0,cur=new Date(fromDate);
+  var end=new Date(toDate);end.setDate(end.getDate()+1);
+  while(cur<end){
+    var nm=new Date(cur.getFullYear(),cur.getMonth()+1,1);
+    if(nm>end)nm=new Date(end);
+    var days=(nm-cur)/86400000;
+    interest+=rem*rate*days/daysInYear(cur.getFullYear());
+    cur=nm;
+  }
+  return interest;
+}
+
+function calc(){
+  var dv=document.getElementById('sDate').value;
+  var start=dv?new Date(dv):new Date();start.setHours(0,0,0,0);
+  var price=+document.getElementById('nPrice').value||+document.getElementById('sPrice').value;
+  price=Math.min(Math.max(price,1000000),8000000000);
+  var downPct=+document.getElementById('sDown').value;
+  var rate=+document.getElementById('sRate').value/100;
+  var termMonths=+document.getElementById('sTerm').value;
+  var graceMon=+document.getElementById('sGrace').value;
+
+  document.getElementById('vPrice').textContent=fmt(price)+' сум';
+  document.getElementById('vDown').textContent=downPct+'%';
+  document.getElementById('vRate').textContent=(rate*100)+'% год.';
+  var yrs=termMonths/12;
+  document.getElementById('vTerm').textContent=termMonths+' мес ('+(yrs%1===0?yrs:yrs.toFixed(1))+' лет)';
+  document.getElementById('vGrace').textContent=graceMon===0?'Нет':graceMon+' мес';
+
+  var advance=price*downPct/100;
+  var body=price-advance;
+  var periods=buildPeriods(start,termMonths);
+  var n=periods.length;
+
+  // ── Точная дата окончания льготного периода ──
+  var graceEndExact=null;
+  if(graceMon>0){
+    graceEndExact=new Date(start);
+    graceEndExact.setMonth(graceEndExact.getMonth()+graceMon);
+    graceEndExact.setHours(0,0,0,0);
+  }
+
+  // Помечаем каждый период: льготный если его НАЧАЛО до graceEndExact
+  // Первый период после льготы может быть частично льготным — он всё равно
+  // считается как основной, но остаток долга не меняется в льготные кварталы
+  var gracePeriods=0;
+  if(graceEndExact){
+    for(var i=0;i<n;i++){
+      // период полностью внутри льготы если его from < graceEndExact
+      if(periods[i].from<graceEndExact) gracePeriods++;
+      else break;
+    }
+  }
+
+  var graceBox=document.getElementById('graceBox');
+  if(graceMon>0){
+    graceBox.className='grace-info-box show';
+    var graceEndStr=formatDate(graceEndExact);
+    var firstMainDate=gracePeriods<n?formatDate(periods[gracePeriods].from):'—';
+    var firstMainPayDate=gracePeriods<n?formatDate(periods[gracePeriods].to):'—';
+    graceBox.innerHTML='⏳ <b>Льготный период:</b> '+formatDate(start)+' → '+graceEndStr
+      +'<br>📌 Начало начисления осн. долга: <b>'+firstMainDate+'</b>'
+      +'<br>💳 Первый платёж с осн. долгом: <b>'+firstMainPayDate+'</b>'
+      +'<br>Льготных кварталов: <b>'+gracePeriods+'</b>';
+  } else {
+    graceBox.className='grace-info-box';
+  }
+
+  // Дни только основных периодов для пропорции
+  var mainDaysList=[];
+  for(var i=gracePeriods;i<n;i++){
+    mainDaysList.push(Math.round((periods[i].to-periods[i].from)/86400000)+1);
+  }
+  var totalDaysMain=mainDaysList.reduce(function(a,b){return a+b;},0)||1;
+
+  gRows=[];
+  var rem=body,totalInt=0,totalDays=0;
+
+  for(var i=0;i<n;i++){
+    var isGrace=i<gracePeriods;
+    var days=Math.round((periods[i].to-periods[i].from)/86400000)+1;
+    var interest=calcInterest(rem,rate,periods[i].from,periods[i].to);
+    var principal=0;
+    if(!isGrace){
+      var mi=i-gracePeriods;
+      principal=mi<mainDaysList.length-1
+        ? body*(mainDaysList[mi]/totalDaysMain)
+        : rem;
+    }
+    var payment=principal+interest;
+    totalInt+=interest;
+    totalDays+=days;
+    gRows.push({num:i+1,from:periods[i].from,to:periods[i].to,days:days,
+      principal:principal,interest:interest,payment:payment,rem:rem,grace:isGrace});
+    if(!isGrace) rem-=principal;
+  }
+
+  gParams={price,advance,body,
+    rate:rate*100,termMonths,graceMon,gracePeriods,
+    totalInt,totalDays,start,downPct,
+    graceEndExact:graceEndExact};
+
+  // Hero
+  document.getElementById('heroLabel').textContent=
+    gracePeriods>0?'1-й платёж (льготный — только %)':'1-й квартальный платёж';
+  document.getElementById('rFirst').textContent=fmtK(gRows[0].payment)+' тыс. сум';
+  document.getElementById('rSub').textContent=
+    n+' платежей · '+gracePeriods+' льготных · ставка '+gParams.rate+'%';
+  document.getElementById('rAdv').textContent=fmtK(advance)+' тыс. сум';
+  document.getElementById('rTotal').textContent=fmtK(body+totalInt+advance)+' тыс. сум';
+  document.getElementById('rInt').textContent=fmtK(totalInt)+' тыс. сум';
+  document.getElementById('rQty').textContent=n+' ('+gracePeriods+' льгот.)';
+  document.getElementById('tblCount').textContent='Всего строк: '+n;
+
+  var tb=document.getElementById('tBody');tb.innerHTML='';
+  gRows.forEach(function(r){
+    var tr=document.createElement('tr');
+    tr.className=r.grace?'grace':'';
+    var badge=r.grace?'<span class="badge badge-grace">льгота</span>':'';
+    tr.innerHTML='<td>'+r.num+'</td>'
+      +'<td>'+formatDate(r.to)+badge+'</td>'
+      +'<td class="days-val">'+r.days+'</td>'
+      +'<td>'+fmtK(r.rem)+'</td>'
+      +'<td>'+(r.grace?'—':fmtK(r.principal))+'</td>'
+      +'<td>'+fmtK(r.interest)+'</td>'
+      +'<td class="pay-val">'+fmtK(r.payment)+'</td>';
+    tb.appendChild(tr);
+  });
+  var tot=document.createElement('tr');tot.className='total';
+  tot.innerHTML='<td>—</td>'
+    +'<td>Итого <span class="badge badge-total">'+n+' платежей</span></td>'
+    +'<td class="days-val">'+totalDays+'</td>'
+    +'<td>—</td>'
+    +'<td>'+fmtK(body)+'</td>'
+    +'<td>'+fmtK(totalInt)+'</td>'
+    +'<td class="pay-val">'+fmtK(body+totalInt)+'</td>';
+  tb.appendChild(tot);
+}
+
+function exportExcel(){
+  if(!window.XLSX){alert('Подождите, библиотека загружается...');return;}
+  var wb=XLSX.utils.book_new();
+  var p=gParams;
+  var data=[
+    ['ЛИЗИНГОВЫЙ КАЛЬКУЛЯТОР — ГРАФИК ПЛАТЕЖЕЙ'],[''],
+    ['Дата начала графика', formatDate(p.start)],
+    ['Стоимость техники (сум)', p.price],
+    ['Аванс', p.downPct+'% ('+fmt(p.advance)+' сум)'],
+    ['Сумма финансирования (сум)', Math.round(p.body)],
+    ['Лизинговая ставка', p.rate+'% годовых'],
+    ['Срок лизинга', p.termMonths+' месяцев'],
+    ['Льготный период', p.graceMon>0?(p.graceMon+' мес, '+p.gracePeriods+' квартал(ов)'):'Нет'],
+    p.graceEndExact?['Дата окончания льготы', formatDate(p.graceEndExact)]:null,
+    ['Итого процентов (сум)', Math.round(p.totalInt)],
+    ['Итого по договору (сум)', Math.round(p.body+p.totalInt+p.advance)],
+    [''],
+    ['№','Дата платежа','Тип','Дней','Остаток долга (сум)','Осн. долг (сум)','Проценты (сум)','Платёж (сум)']
+  ].filter(Boolean);
+  gRows.forEach(function(r){
+    data.push([r.num,formatDate(r.to),r.grace?'Льготный':'Основной',r.days,
+      Math.round(r.rem),r.grace?0:Math.round(r.principal),
+      Math.round(r.interest),Math.round(r.payment)]);
+  });
+  data.push(['','Итого','',p.totalDays,'',Math.round(p.body),Math.round(p.totalInt),Math.round(p.body+p.totalInt)]);
+  var ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:5},{wch:14},{wch:10},{wch:8},{wch:22},{wch:20},{wch:18},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws,'График платежей');
+  XLSX.writeFile(wb,'Лизинг_график_платежей.xlsx');
+}
+
+function exportCSV(){
+  var lines=['№;Дата;Тип;Дней;Остаток (сум);Осн. долг (сум);Проценты (сум);Платёж (сум)'];
+  gRows.forEach(function(r){
+    lines.push([r.num,formatDate(r.to),r.grace?'Льготный':'Основной',r.days,
+      Math.round(r.rem),r.grace?0:Math.round(r.principal),
+      Math.round(r.interest),Math.round(r.payment)].join(';'));
+  });
+  var p=gParams;
+  lines.push(['Итого','','',p.totalDays,'',Math.round(p.body),Math.round(p.totalInt),Math.round(p.body+p.totalInt)].join(';'));
+  var blob=new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='Лизинг_график.csv';a.click();
+  URL.revokeObjectURL(url);
+}
+
+var t=new Date();
+document.getElementById('sDate').value=t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());
+calc();
+</script>
+</body>
+</html>
